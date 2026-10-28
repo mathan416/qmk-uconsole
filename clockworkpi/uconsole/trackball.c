@@ -4,6 +4,7 @@
 #include "quantum.h"
 #include "rate_meter.h"
 #include <math.h>
+#include <stdint.h>
 
 #define TB_LEFT PAL_LINE(GPIOC, 11U)
 #define TB_RIGHT PAL_LINE(GPIOC, 9U)
@@ -23,7 +24,54 @@ volatile bool select_button_scrolled =
     false; // set when trackball moves while select is pressed
 volatile bool precision_mode = false; // toggled from keymap
 
-static int8_t distances[AXIS_NUM] = {0};
+// Experimental direct-pointer profile: raw edges, not synthetic velocity.
+// Keep a wide pending counter so a delayed report cannot wrap at 127 edges.
+static int32_t distances[AXIS_NUM] = {0};
+// Normal pointer gain is exactly 25 half-counts per raw edge (12.5).
+// Canonical 0/1 remainders make rounding independent of report grouping,
+// including reversals. Precision mode does not consume this remainder.
+static uint8_t pointer_half_remainder[AXIS_NUM] = {0};
+
+static void pointer_reset(void) {
+  distances[AXIS_X] = 0;
+  distances[AXIS_Y] = 0;
+  pointer_half_remainder[AXIS_X] = 0;
+  pointer_half_remainder[AXIS_Y] = 0;
+}
+static volatile bool pointer_reset_pending = false;
+
+// Wakeup can run in interrupt context. Only set a flag here; consume it
+// under the existing report lock rather than taking a thread-only lock.
+void suspend_power_down_kb(void) {
+  pointer_reset_pending = true;
+  suspend_power_down_user();
+}
+
+void suspend_wakeup_init_kb(void) {
+  pointer_reset_pending = true;
+  suspend_wakeup_init_user();
+}
+
+static int8_t pointer_consume(uint8_t axis) {
+  // Fixed gains only: 12.5 normal, 2 precision. Ten normal edges produce
+  // 125 counts, so every emitted report remains within the HID limit.
+  const bool precision = precision_mode;
+  const int32_t report_limit = precision ? 127 / 2 : 10;
+  const int32_t pending = distances[axis];
+  const int32_t edges = pending > report_limit ? report_limit :
+                        pending < -report_limit ? -report_limit : pending;
+  distances[axis] -= edges; // Carry raw overflow into the following report.
+  if (precision) {
+    return (int8_t)(edges * 2);
+  }
+
+  const int32_t halves = edges * 25 + pointer_half_remainder[axis];
+  // C division truncates toward zero. Explicit floor division is needed
+  // to keep a canonical nonnegative remainder for negative movement too.
+  const int32_t counts = halves >= 0 ? halves / 2 : -((-halves + 1) / 2);
+  pointer_half_remainder[axis] = (uint8_t)(halves - counts * 2);
+  return (int8_t)counts;
+}
 static rate_meter_t rate_meters[AXIS_NUM] = {0};
 static glider_t gliders[AXIS_NUM] = {0};
 
@@ -51,7 +99,10 @@ static float rateToVelocityCurve(float input, float acceleration_scale) {
 
 static void trackball_move(uint8_t axis, int8_t direction) {
   // Always update distances[], regardless of the mode
-  distances[axis] += direction;
+  if ((direction > 0 && distances[axis] < INT32_MAX) ||
+      (direction < 0 && distances[axis] > INT32_MIN)) {
+    distances[axis] += direction;
+  }
 
   // Always run glider/rate meter updates to allow momentum in both modes
   {
@@ -146,6 +197,11 @@ report_mouse_t pointing_device_driver_get_report(report_mouse_t mouse_report) {
   int8_t x = 0, y = 0, h = 0, v = 0;
   chSysLock();
 
+  if (pointer_reset_pending) {
+    pointer_reset();
+    pointer_reset_pending = false;
+  }
+
   const uint16_t now = timer_read();
   uint16_t delta = TIMER_DIFF_16(now, last_report);
   last_report = now;
@@ -165,8 +221,7 @@ report_mouse_t pointing_device_driver_get_report(report_mouse_t mouse_report) {
     glider_stop(&gliders[AXIS_Y]);
     wheel_buffer[AXIS_X] = 0;
     wheel_buffer[AXIS_Y] = 0;
-    distances[AXIS_X] = 0;
-    distances[AXIS_Y] = 0;
+    pointer_reset();
   } else {
     rate_meter_tick(&rate_meters[AXIS_X], delta);
     rate_meter_tick(&rate_meters[AXIS_Y], delta);
@@ -198,10 +253,11 @@ report_mouse_t pointing_device_driver_get_report(report_mouse_t mouse_report) {
 
   switch (mode) {
   case MODE_MOUSE:
-    x = glider_glide(&gliders[AXIS_X], (uint8_t)delta);
-    y = glider_glide(&gliders[AXIS_Y], (uint8_t)delta);
-    distances[AXIS_X] = 0;
-    distances[AXIS_Y] = 0;
+    // Immediate, fixed-gain control: 12.5 counts/edge, or 2 in
+    // precision mode. No pointer acceleration or coast in this test build.
+    // Wheel mode deliberately retains the upstream glider behavior below.
+    x = pointer_consume(AXIS_X);
+    y = pointer_consume(AXIS_Y);
     break;
   case MODE_WHEEL:
     // Use glider for smoothed momentum scrolling
@@ -220,8 +276,7 @@ report_mouse_t pointing_device_driver_get_report(report_mouse_t mouse_report) {
 
     // Clear raw distances (consumed by glider logic in
     // trackball_move/glider_glide updates)
-    distances[AXIS_X] = 0;
-    distances[AXIS_Y] = 0;
+    pointer_reset();
     break;
   }
   chSysUnlock();
