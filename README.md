@@ -14,9 +14,51 @@ submodule pin are preserved; `main` retains the upstream branch.
 ## Download and install
 
 Get the [tested default firmware ZIP](https://github.com/mathan416/qmk-uconsole/releases/download/v2.1.1-fixed12p5/uconsole-v5-fixed12p5-default.zip)
-and follow its included `INSTALL.md`. The
+and unzip it. It contains the firmware, checksums and `INSTALL.md`; the
+[full installation notes](https://github.com/mathan416/qmk-uconsole/releases/download/v2.1.1-fixed12p5/INSTALL.md)
+are also available separately. The
 [release page](https://github.com/mathan416/qmk-uconsole/releases/tag/v2.1.1-fixed12p5)
 also has the matching source bundle, checksums and license notices.
+
+### Updating an existing QMK installation
+
+Before starting, keep stable power, a backup of your current firmware and an
+external keyboard or SSH connection ready. Install `dfu-util` on the computer
+doing the update and disconnect other DFU-capable devices.
+
+If device identity is unclear, follow the full guide's `dfu-util -l` check
+first. If multiple devices match, disconnect the others or use a verified USB
+path as described there before writing.
+
+1. Open a terminal in the unzipped folder and check the files:
+
+   ```sh
+   sha256sum -c SHA256SUMS
+   ```
+
+   On macOS, use `shasum -a 256 -c SHA256SUMS`. Continue only if the checks pass.
+
+2. Run the update command below. It **writes keyboard firmware**, selecting
+   DFU device **`1eaf:0003`**, alternate setting **2**:
+
+   ```sh
+   sudo dfu-util -w -d ,1eaf:0003 -a 2 -D uconsole-v5-fixed12p5-default.bin -R
+   ```
+
+3. While it waits, press **Left Alt + Right Alt + Start simultaneously** to
+   enter the QMK bootloader. Read the complete result, then check typing,
+   pointer movement, clicks, Select scrolling and precision after restart.
+
+The DFU-only selector above follows the official manual; it has not been
+physically tested here. See the full
+installation notes for that distinction and [recovery options](docs/RECOVERY.md).
+
+### Coming from stock firmware
+
+First-time installation uses a different route. Start with the
+[upstream stock-to-QMK guide](docs/UPSTREAM-v2.1.1.md#option-1-first-time-flash-from-stock-firmware).
+That migration has not been retested for this release; the update steps above
+apply to a keyboard already running QMK.
 
 ## Everyday controls
 
