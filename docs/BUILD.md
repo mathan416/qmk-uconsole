@@ -15,10 +15,19 @@ are separate operations; none of the commands in this document flash a device.
 | printf | `c2e3b4e10d281e7f0f694d3ecbd9f320977288cc` |
 | LUFA | `549b97320d515bfca2f95c145a67bd13be968faa` |
 
-The gitlinks pin these dependencies. Use `git submodule update --init --recursive`,
-without `--remote`. Do not run `qmk setup` or replace the submodule with a fresh
+The gitlinks pin these dependencies. Use `sh scripts/init-source.sh`, which
+initializes QMK and the four dependencies above without descending into their
+optional submodules. Do not use `--recursive` or `--remote`. Do not run
+`qmk setup` or replace the submodule with a fresh
 clone of the latest QMK. Inspect local modifications before rebuilding an image
 you intend to install.
+
+The fork contains a QMK gitlink, not vendored NXP SDK files. Upstream QMK points
+to ChibiOS-Contrib, whose metadata also points to an optional NXP MCUX SDK.
+That SDK is unused by this STM32F103 target. The initialization script leaves
+it unfetched while preserving all upstream pins. A manual recursive submodule
+update can still fetch it through that upstream metadata. Existing local SDK
+checkouts from earlier recursive updates are not automatically deleted.
 
 ## Original v5 toolchain
 
@@ -45,7 +54,7 @@ Use a virtual environment rather than changing system Python packages.
 ```sh
 git clone --branch v5-fixed12p5 https://github.com/mathan416/qmk-uconsole.git
 cd qmk-uconsole
-git submodule update --init --recursive
+sh scripts/init-source.sh
 python3 -m venv .venv
 . .venv/bin/activate
 python -m pip install -r docs/python-build-requirements.txt

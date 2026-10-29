@@ -62,7 +62,8 @@ working rollback images independently of this source repository.
 ## Build and test
 
 See [BUILD.md](docs/BUILD.md) for exact source/toolchain pins, setup, output
-format and reproduction limits. After setup:
+format and reproduction limits. Setup uses `sh scripts/init-source.sh` to fetch
+the pinned target dependencies without the unused NXP SDK. After setup:
 
 ```sh
 make test          # host tests of the actual firmware C sources

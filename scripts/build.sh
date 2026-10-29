@@ -10,7 +10,7 @@ esac
 expected_qmk=a0b15d08bc56ccbea9990dde884136425e9886f7
 if [ ! -f qmk_firmware/Makefile ] ||
    [ "$(git -C qmk_firmware rev-parse HEAD)" != "$expected_qmk" ]; then
-  printf 'Initialize the pinned sources with: git submodule update --init --recursive\n' >&2
+  printf 'Initialize the pinned target sources with: sh scripts/init-source.sh\n' >&2
   exit 1
 fi
 link=qmk_firmware/keyboards/clockworkpi
