@@ -8,9 +8,6 @@ upstream's pointer acceleration and coast with the **v5
 fixed gain of 12.5 counts per detected edge**; scrolling retains upstream's
 smoothing and momentum.
 
-This version was tried on one uConsole and its feel was accepted by its owner
-on 2026-10-28. It is not a claim of testing across all hardware.
-
 The fork's working branch is **`v5-fixed12p5`**. The original history and QMK
 submodule pin are preserved; `main` retains the upstream branch. No firmware
 binaries or releases are published as part of this setup.
@@ -73,12 +70,9 @@ make build         # default keymap, build only
 make no_tap_hold   # optional keymap, build only
 ```
 
-The imported suite passed **3,328,375 checks** with UndefinedBehaviorSanitizer,
-and **11,250 wheel reports** matched upstream v2.1.1. See
-[VERIFICATION.md](docs/VERIFICATION.md) for the recorded checks and build results.
-Run these tests locally; GitHub Actions is disabled on this fork pending
-workflow-permission setup.
-Mock APIs cannot validate real interrupt timing, USB transport or recovery.
+The movement and scrolling tests pass. You can run them locally with
+`make test`; automatic GitHub checks are currently disabled. See the
+[verification notes](docs/VERIFICATION.md) for the full test and build results.
 
 ## Recovery and original project
 
@@ -91,8 +85,6 @@ to this v5 profile. Use this fork's build instructions for this branch.
 
 ## Attribution and licensing
 
-Credit to **j1n6 and the upstream contributors**, QMK and its dependencies.
-Upstream's README declares **GPL-3.0** but the v2.1.1 tree lacks its linked root
-LICENSE file. [LICENSING.md](docs/LICENSING.md) records that discrepancy and
-preserves component-specific notices without claiming one license for every
-component. The v5 changes and new fork materials follow GPL-3.0.
+This fork builds on work by **j1n6, the upstream contributors and QMK**.
+The v5 changes and new fork materials use GPL-3.0. See the
+[licensing notes](docs/LICENSING.md) for details and component notices.
