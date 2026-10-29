@@ -5,6 +5,27 @@ v4, original v2.1.1 application and tested v5 image backed up independently.
 Application images do not back up the MCU bootloader or EEPROM. A fresh build
 is not automatically identical to a saved, tested image.
 
+## Build outputs and saved backup filenames
+
+This repository provides source and build instructions, **not public firmware
+downloads**. These filenames refer to different files:
+
+| Filename or path | Where it comes from |
+| --- | --- |
+| `qmk_firmware/.build/clockworkpi_uconsole_default.bin` | Fresh output of `make build`. |
+| `qmk_firmware/.build/clockworkpi_uconsole_no_tap_hold.bin` | Fresh output of `make no_tap_hold`. |
+| `build-output/v5-fixed12p5.bin` | A copy of a fresh default build, created by the copy command in [BUILD.md](BUILD.md). |
+| `uconsole_direct_test_v5_fixed12p5.bin` | Privately saved, tested v5 image from the original test kit. |
+| `rollback_direct_test_v4_fixed10.bin` | Privately saved, known-working v4 rollback image from that kit. |
+| `rollback_original_v2.1.1.bin` | Privately saved original v2.1.1 application backup from that kit. |
+
+The last three files are available only if you kept those backups; cloning or
+building this repository does not retrieve or recreate them. Renaming a fresh
+build to one of those names does not make it the saved, tested image. Use the
+actual path to your chosen file and verify its hash against its own recorded
+provenance. See [VERIFICATION.md](VERIFICATION.md) for the original v5 and fresh
+build results.
+
 Before any future update, keep stable power and an independent input path
 (SSH or an external keyboard), check the file hash and confirm device identity
 with `dfu-util -l`. This setup has not flashed or changed the uConsole.
@@ -13,8 +34,11 @@ with `dfu-util -l`. This setup has not flashed or changed the uConsole.
 
 The following commands **write application firmware** and are reference only.
 Do not run them as part of testing, building or repository setup. Use the exact
-verified file you intend to install. For the existing QMK bootloader, the
-previously used command is:
+verified file you intend to install. The examples below use the **privately
+saved test-kit filenames**, with those verified files in the current directory.
+For a fresh build, use its actual output path from the table above instead;
+that installs a newly built image, not the saved v5 image. For the existing
+QMK bootloader, the previously used command for the saved v5 image is:
 
 ```sh
 sudo dfu-util -w -d 1eaf:0003 -a 2 -D uconsole_direct_test_v5_fixed12p5.bin -R

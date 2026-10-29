@@ -1,13 +1,41 @@
 # uConsole QMK — fixed-gain trackball v5
 
-A personal fork of [j1n6/qmk-uconsole](https://github.com/j1n6/qmk-uconsole),
-based on **v2.1.1**, with the **v5 fixed 12.5 counts per detected edge** pointer
-profile. This version was tried on one uConsole and its feel was accepted by
-its owner on 2026-10-28. It is not a claim of testing across all hardware.
+Firmware for the uConsole's built-in keyboard and trackball. This personal
+fork of [j1n6/qmk-uconsole](https://github.com/j1n6/qmk-uconsole), based on
+**v2.1.1**, makes pointer movement predictable: movement depends on detected
+sensor edges, without an extra boost for rolling faster. It replaces
+upstream's pointer acceleration and coast with the **v5
+fixed gain of 12.5 counts per detected edge**; scrolling retains upstream's
+smoothing and momentum.
+
+This version was tried on one uConsole and its feel was accepted by its owner
+on 2026-10-28. It is not a claim of testing across all hardware.
 
 The fork's working branch is **`v5-fixed12p5`**. The original history and QMK
 submodule pin are preserved; `main` retains the upstream branch. No firmware
 binaries or releases are published as part of this setup.
+
+## Everyday controls
+
+Set the host operating system's keyboard layout to **US English (ANSI)**.
+Other layouts can produce different symbols, particularly with special
+characters and tap-hold keys.
+
+| Control | Action |
+| --- | --- |
+| Trackball | Move the pointer. |
+| Hold **Select** and roll the trackball | Scroll vertically or horizontally. |
+| Hold **Select** and click the trackball's middle button | Toggle precision pointer movement. |
+| D-pad | Arrow keys in keyboard mode; joystick axes in gamepad mode. |
+| Hold gamepad **Y** or **B**, then use the D-pad | Move the pointer while in keyboard mode. |
+| **Fn + G** | Toggle gamepad mode. |
+| **Fn + Space** | Cycle the keyboard backlight. |
+| **Fn + Esc** | Toggle the keyboard lock; press again to unlock. |
+| **Fn + T + H** | Toggle tap-hold typing in the default build. Disabled by default; the setting is saved. The `no_tap_hold` build omits it. |
+
+With tap-hold enabled, a short tap types the base character; holding for at
+least 200 ms types its shifted form. See the
+[original keyboard guide](docs/UPSTREAM-v2.1.1.md) for the full mappings.
 
 ## Pointer behavior
 
@@ -17,9 +45,11 @@ binaries or releases are published as part of this setup.
 - Half-counts carry across reports, idle and reversals. For example, two positive
   edges emit 12 then 13 counts; two negative edges emit -13 then -12. This is
   deterministic rounding to whole USB counts, not speed-dependent gain.
-- Each normal report drains at most 10 edges (125 counts); excess raw movement
-  stays queued. Precision is applied when the queue drains. Mode changes and
-  suspend/wake discard queued pointer movement and fractional carry.
+- Each normal report drains at most **10 edges (125 counts) per axis**; excess
+  raw movement stays queued. Precision is applied when the queue drains.
+  Transitions between pointer and Select-scroll modes, and suspend/wake,
+  discard queued pointer movement and fractional carry. Toggling precision
+  preserves the normal half-count remainder.
 - Select scrolling keeps upstream's smoothing/momentum behavior. Keyboard
   mappings, bootloader configuration and EEPROM layout are unchanged.
 
@@ -44,8 +74,10 @@ make no_tap_hold   # optional keymap, build only
 ```
 
 The imported suite passed **3,328,375 checks** with UndefinedBehaviorSanitizer,
-and **11,250 wheel reports** matched upstream v2.1.1. Run these tests locally;
-GitHub Actions is disabled on this fork pending workflow-permission setup.
+and **11,250 wheel reports** matched upstream v2.1.1. See
+[VERIFICATION.md](docs/VERIFICATION.md) for the recorded checks and build results.
+Run these tests locally; GitHub Actions is disabled on this fork pending
+workflow-permission setup.
 Mock APIs cannot validate real interrupt timing, USB transport or recovery.
 
 ## Recovery and original project
