@@ -7,11 +7,13 @@ is not automatically identical to a saved, tested image.
 
 ## Build outputs and saved backup filenames
 
-This repository provides source and build instructions, **not public firmware
-downloads**. These filenames refer to different files:
+The [release page](https://github.com/mathan416/qmk-uconsole/releases/tag/v2.1.1-fixed12p5)
+provides the tested default firmware and installation instructions. These
+filenames refer to different files:
 
 | Filename or path | Where it comes from |
 | --- | --- |
+| `uconsole-v5-fixed12p5-default.bin` | Public tested default image from the release, also included in its firmware ZIP. |
 | `qmk_firmware/.build/clockworkpi_uconsole_default.bin` | Fresh output of `make build`. |
 | `qmk_firmware/.build/clockworkpi_uconsole_no_tap_hold.bin` | Fresh output of `make no_tap_hold`. |
 | `build-output/v5-fixed12p5.bin` | A copy of a fresh default build, created by the copy command in [BUILD.md](BUILD.md). |
@@ -19,8 +21,10 @@ downloads**. These filenames refer to different files:
 | `rollback_direct_test_v4_fixed10.bin` | Privately saved, known-working v4 rollback image from that kit. |
 | `rollback_original_v2.1.1.bin` | Privately saved original v2.1.1 application backup from that kit. |
 
-The last three files are available only if you kept those backups; cloning or
-building this repository does not retrieve or recreate them. Renaming a fresh
+The last three names are from the original private test kit. Its v5 image is
+byte-identical to the public release image under the new filename above; v4
+and original v2.1.1 rollback images are not distributed by this release.
+Cloning or building this repository does not retrieve those saved files. Renaming a fresh
 build to one of those names does not make it the saved, tested image. Use the
 actual path to your chosen file and verify its hash against its own recorded
 provenance. See [VERIFICATION.md](VERIFICATION.md) for the original v5 and fresh

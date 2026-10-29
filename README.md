@@ -9,8 +9,14 @@ fixed gain of 12.5 counts per detected edge**; scrolling retains upstream's
 smoothing and momentum.
 
 The fork's working branch is **`v5-fixed12p5`**. The original history and QMK
-submodule pin are preserved; `main` retains the upstream branch. No firmware
-binaries or releases are published as part of this setup.
+submodule pin are preserved; `main` retains the upstream branch.
+
+## Download and install
+
+Get the [tested default firmware ZIP](https://github.com/mathan416/qmk-uconsole/releases/download/v2.1.1-fixed12p5/uconsole-v5-fixed12p5-default.zip)
+and follow its included `INSTALL.md`. The
+[release page](https://github.com/mathan416/qmk-uconsole/releases/tag/v2.1.1-fixed12p5)
+also has the matching source bundle, checksums and license notices.
 
 ## Everyday controls
 

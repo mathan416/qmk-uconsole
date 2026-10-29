@@ -94,7 +94,9 @@ Original ELF application load range: `0x08002000` through `0x0800c474`
 (exclusive). An image built with another compiler can have a different layout
 and hash. Do not label such an image as the original tested binary.
 
-No firmware binaries or releases are added by this fork setup.
+The [release page](https://github.com/mathan416/qmk-uconsole/releases/tag/v2.1.1-fixed12p5)
+provides the tested default image and its corresponding source bundle. A fresh
+build is not automatically identical to that image; compare hashes as above.
 
 ## Tests and CI status
 
